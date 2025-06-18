@@ -1,23 +1,13 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata = {
-  title: "Accounting website",
-  description: "website for accounting services",
+  title: "Accounting Dashboard",
+  description: "A modern accounting dashboard built with Next.js",
 };
 
 export default function RootLayout({ children }) {
   return (
+    // We pass the font variable to the html tag
     <html lang="en">
       <body>{children}</body>
     </html>
