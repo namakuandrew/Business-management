@@ -327,3 +327,68 @@ ul {
 .cancel-btn:hover {
   background-color: #e5e7eb; /* A slightly darker gray on hover */
 }
+
+/* advance form */
+/* Styles for Advanced Form */
+.form-grid-col-3 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+@media (min-width: 1024px) {
+  .form-grid-col-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.line-items-container {
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+}
+.line-items-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+.line-items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.line-items-table th,
+.line-items-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+.line-items-table th {
+  background-color: #f9fafb;
+}
+.line-items-table input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+}
+.line-items-table input:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+.remove-btn,
+.add-row-btn {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+.remove-btn {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+.add-row-btn {
+  margin-top: 1rem;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+}

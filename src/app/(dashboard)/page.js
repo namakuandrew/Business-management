@@ -2,42 +2,40 @@ import StatCard from "@/component/StatCard";
 import RecentEntriesTable from "@/component/RecentEntriesTable";
 import { supabase } from "@/lib/supabase/client";
 
-const formatToRupiah = (number) => {
-  return new Intl.NumberFormat("id-ID", {
+const formatToRupiah = (number) =>
+  new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
   }).format(number);
-};
 
 export default async function DashboardPage() {
-  const { data: entries, error } = await supabase
-    .from("entries")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const { data: items, error: itemsError } = await supabase
+    .from("journal_entry_items")
+    .select("*");
+  const { count: entriesCount, error: countError } = await supabase
+    .from("journal_entries")
+    .select("*", { count: "exact", head: true });
 
-  if (error) {
-    console.error("Error fetching entries:", error);
-    return <p>Error loading data. Please check your Supabase connection.</p>;
+  if (itemsError || countError) {
+    console.error("Error fetching dashboard data:", itemsError || countError);
+    return <p>Error loading data.</p>;
   }
 
-  const totalIn = entries
-    .filter((entry) => entry.type === "In")
-    .reduce((acc, entry) => acc + entry.amount, 0);
-
-  const totalOut = entries
-    .filter((entry) => entry.type === "Out")
-    .reduce((acc, entry) => acc + entry.amount, 0);
-
+  const totalIn = items
+    .filter((item) => item.amount > 0)
+    .reduce((acc, item) => acc + item.amount, 0);
+  const totalOut = items
+    .filter((item) => item.amount < 0)
+    .reduce((acc, item) => acc + item.amount, 0);
   const netBalance = totalIn + totalOut;
-  const totalEntries = entries.length;
 
   return (
     <>
       <header className="page-header">
         <div className="page-header-title">
-          <h1> Main Dashboard</h1>
-          <p>Overview of all of your financial data.</p>
+          <h1>Dashboard</h1>
+          <p>Overview of your financial data.</p>
         </div>
         <div className="avatar">A</div>
       </header>
@@ -45,27 +43,17 @@ export default async function DashboardPage() {
         <StatCard
           title="Total In"
           value={formatToRupiah(totalIn)}
-          details="Last 30 days"
           valueColor="text-green-500"
         />
         <StatCard
           title="Total Out"
           value={formatToRupiah(Math.abs(totalOut))}
-          details="Last 30 days"
           valueColor="text-red-500"
         />
-        <StatCard
-          title="Net Balance"
-          value={formatToRupiah(netBalance)}
-          details="As of today"
-        />
-        <StatCard
-          title="Total Entries"
-          value={totalEntries.toLocaleString("id-ID")}
-          details="All time"
-        />
+        <StatCard title="Net Balance" value={formatToRupiah(netBalance)} />
+        <StatCard title="Total Entries" value={entriesCount} />
       </div>
-      <RecentEntriesTable entries={entries} />
+      <RecentEntriesTable />
     </>
   );
 }
