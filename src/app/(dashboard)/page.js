@@ -17,8 +17,17 @@ export default async function DashboardPage() {
     .from("journal_entries")
     .select("*", { count: "exact", head: true });
 
-  if (itemsError || countError) {
-    console.error("Error fetching dashboard data:", itemsError || countError);
+  const { data: recentEntries, error: recentError } = await supabase
+    .from("journal_entries")
+    .select("*, journal_entry_items(description, amount)')")
+    .order("posting_date", { ascending: false })
+    .limit(5);
+
+  if (itemsError || countError || recentError) {
+    console.error(
+      "Error fetching dashboard data:",
+      itemsError || countError || recentError
+    );
     return <p>Error loading data.</p>;
   }
 
@@ -53,7 +62,7 @@ export default async function DashboardPage() {
         <StatCard title="Net Balance" value={formatToRupiah(netBalance)} />
         <StatCard title="Total Entries" value={entriesCount} />
       </div>
-      <RecentEntriesTable />
+      <RecentEntriesTable entries={recentEntries} />
     </>
   );
 }

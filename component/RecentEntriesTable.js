@@ -24,49 +24,56 @@ export default function RecentEntriesTable({ entries }) {
         <table className="data-table">
           <thead>
             <tr>
+              <th className="date-col">Date</th>
               <th>Description</th>
               <th>Amount</th>
-              <th className="date-col">Date</th>
               <th>Type</th>
             </tr>
           </thead>
           <tbody>
             {/* We now map over the 'entries' prop */}
             {entries && entries.length > 0 ? (
-              entries.map((entry) => (
-                <tr key={entry.id}>
-                  <td>{entry.description}</td>
-                  <td
-                    className={
-                      entry.type === "In" ? "text-green-500" : "text-red-500"
-                    }
-                  >
-                    {entry.amount > 0 ? "+" : ""}$
-                    {Math.abs(entry.amount).toFixed(2)}
-                  </td>
-                  {/* We format the date from the database */}
-                  <td className="date-col">
-                    {format(new Date(entry.created_at), "yyyy-MM-dd")}
-                  </td>
-                  <td>
-                    <span
-                      className={`status-badge ${
-                        entry.type === "In" ? "badge-in" : "badge-out"
-                      }`}
+              entries.map((entry) => {
+                const description = entry.journal_entry_items
+                  .map((item) => item.Description || entry.entry_type)
+                  .join(",");
+                const totalAmount = entry.journal_entry_items.reduce(
+                  (sum, item) => sum + item.amount,
+                  0
+                );
+                return (
+                  <tr key={entry.id}>
+                    <td>
+                      {format(new Date(entry.posting_date), "yyyy-MM-dd")}
+                    </td>
+                    <td>{description}</td>
+                    <td
+                      className={
+                        totalAmount >= 0 ? "text-green-500" : "text-red-500"
+                      }
                     >
-                      {entry.type}
-                    </span>
-                  </td>
-                </tr>
-              ))
+                      {totalAmount >= 0 ? "+" : ""}
+                      {formatToRupiah(Math.abs(totalAmount))}
+                    </td>
+                    <td>
+                      <span
+                        className={`status-badge ${
+                          entry.cash_type === "In" ? "badge-in" : "badge-out"
+                        }`}
+                      >
+                        {entry.cash_type || "N/A"}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
-              // This is shown if there are no entries
               <tr>
                 <td
                   colSpan="4"
                   style={{ textAlign: "center", padding: "2rem" }}
                 >
-                  No entries found.
+                  No recent entries found.
                 </td>
               </tr>
             )}

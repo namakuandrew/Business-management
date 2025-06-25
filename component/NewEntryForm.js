@@ -35,14 +35,16 @@ export default function NewJournalEntryForm() {
     const formData = new FormData(event.target);
     const result = await createJournalEntry(formData);
 
-    if (result.error) {
+    if (result && result.error) {
       toast.error(result.error); // Show error toast
-    } else {
+    } else if (result && result.success) {
       toast.success(result.success); // Show success toast
-      // Redirect to the entries page after a short delay
-      setTimeout(() => {
-        router.push("/entries");
-      }, 1500);
+      router.refresh();
+      router.push("/");
+    } else {
+      toast.error(
+        "An unexpected error occurred while creating the journal entry."
+      );
     }
 
     setIsSubmitting(false);
