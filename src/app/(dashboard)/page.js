@@ -2,12 +2,12 @@ import StatCard from "@/component/StatCard";
 import RecentEntriesTable from "@/component/RecentEntriesTable";
 import { supabase } from "@/lib/supabase/client";
 
-const formatToRupiah = (number) =>
+const formatToRupiah = (value) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
-  }).format(number);
+  }).format(value);
 
 export default async function DashboardPage() {
   const { data: items, error: itemsError } = await supabase

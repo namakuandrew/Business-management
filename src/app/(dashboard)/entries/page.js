@@ -1,11 +1,19 @@
 import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
 import Link from "next/link";
+import DeleteEntryButton from "@/component/DeleteEntryButton";
+
+const formatToRupiah = (value) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(value);
 
 export default async function EntriesPage() {
   const { data: entries, error } = await supabase
     .from("journal_entries")
-    .select("*")
+    .select("*, journal_entry_items(description, amount)")
     .order("posting_date", { ascending: false });
 
   if (error) return <p>Could not load entries.</p>;
@@ -29,17 +37,53 @@ export default async function EntriesPage() {
               <th>Entry Type</th>
               <th>Reference</th>
               <th>Company</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {entries.map((entry) => (
-              <tr key={entry.id}>
-                <td>{format(new Date(entry.posting_date), "yyyy-MM-dd")}</td>
-                <td>{entry.entry_type}</td>
-                <td>{entry.reference_no || "-"}</td>
-                <td>{entry.company}</td>
-              </tr>
-            ))}
+            {entries.map((entry) => {
+              const description = entry.journal_entry_items
+                .map((item) => item.description || entry.entry_type)
+                .join(", ");
+              const totalAmount = entry.journal_entry_items.reduce(
+                (sum, item) => sum + item.amount,
+                0
+              );
+
+              return (
+                <tr key={entry.id}>
+                  <td>{format(new Date(entry.posting_date), "yyyy-MM-dd")}</td>
+                  <td>{description}</td>
+                  <td
+                    className={
+                      totalAmount >= 0 ? "text-green-500" : "text-red-500"
+                    }
+                  >
+                    {totalAmount >= 0 ? "+" : ""}
+                    {formatToRupiah(Math.abs(totalAmount))}
+                  </td>
+                  <td>
+                    <span
+                      className={`status-badge ${
+                        entry.cash_type === "In" ? "badge-in" : "badge-out"
+                      }`}
+                    >
+                      {entry.cash_type || "N/A"}
+                    </span>
+                  </td>
+                  {/* New Actions Cell */}
+                  <td className="actions-cell">
+                    <Link
+                      href={`/entries/${entry.id}/edit`}
+                      className="edit-btn"
+                    >
+                      Edit
+                    </Link>
+                    <DeleteEntryButton entryId={entry.id} />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

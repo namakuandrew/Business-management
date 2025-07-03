@@ -1,12 +1,12 @@
 import { format } from "date-fns";
 import Link from "next/link";
 
-const formatToRupiah = (number) => {
+const formatToRupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     minimumFractionDigits: 0,
-  }).format(number);
+  }).format(value);
 };
 
 // This component receives data via the 'entries' prop
