@@ -1,43 +1,42 @@
 import StatCard from "@/component/StatCard";
 import RecentEntriesTable from "@/component/RecentEntriesTable";
 import { supabase } from "@/lib/supabase/client";
-
-const formatToRupiah = (value) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(value);
+import { formatToRupiah } from "@/lib/utils";
 
 export default async function DashboardPage() {
-  const { data: items, error: itemsError } = await supabase
-    .from("journal_entry_items")
-    .select("*");
-  const { count: entriesCount, error: countError } = await supabase
+  const { data: allEntries, error } = await supabase
     .from("journal_entries")
-    .select("*", { count: "exact", head: true });
+    .select("*, journal_entry_items(amount)")
+    .order("posting_date", { ascending: false });
 
-  const { data: recentEntries, error: recentError } = await supabase
-    .from("journal_entries")
-    .select("*, journal_entry_items(description, amount)')")
-    .order("posting_date", { ascending: false })
-    .limit(5);
-
-  if (itemsError || countError || recentError) {
-    console.error(
-      "Error fetching dashboard data:",
-      itemsError || countError || recentError
-    );
+  if (error) {
+    console.error("Error fetching entries:", error);
     return <p>Error loading data.</p>;
   }
 
-  const totalIn = items
-    .filter((item) => item.amount > 0)
-    .reduce((acc, item) => acc + item.amount, 0);
-  const totalOut = items
-    .filter((item) => item.amount < 0)
-    .reduce((acc, item) => acc + item.amount, 0);
-  const netBalance = totalIn + totalOut;
+  //calculation
+  let totalIn = 0;
+  let totalOut = 0;
+  allEntries.forEach((entry) => {
+    // Calculate the total amount for this specific entry
+    const entryTotal = entry.journal_entry_items.reduce(
+      (sum, item) => sum + item.amount,
+      0
+    );
+
+    // Use the parent entry's 'cash_type' to sort the total
+    if (entry.cash_type === "In") {
+      totalIn += entryTotal;
+    } else {
+      totalOut += entryTotal;
+    }
+  });
+
+  // FIX: Ensure netBalance is calculated correctly here
+  const netBalance = totalIn + totalOut; // Note: totalOut is already negative if amounts are stored correctly
+  const entriesCount = allEntries.length;
+  const netBalancecolor = netBalance > 0 ? "text-green-500" : "text-red-500";
+  const recentEntries = allEntries.slice(0, 5);
 
   return (
     <>
@@ -46,20 +45,26 @@ export default async function DashboardPage() {
           <h1>Dashboard</h1>
           <p>Overview of your financial data.</p>
         </div>
-        <div className="avatar">A</div>
+        <div className="avatar">S</div>
       </header>
       <div className="stats-grid">
         <StatCard
           title="Total In"
-          value={formatToRupiah(totalIn)}
+          value={`+ ${formatToRupiah(totalIn)}`}
           valueColor="text-green-500"
         />
         <StatCard
           title="Total Out"
-          value={formatToRupiah(Math.abs(totalOut))}
+          value={`- ${formatToRupiah(Math.abs(totalOut))}`}
           valueColor="text-red-500"
         />
-        <StatCard title="Net Balance" value={formatToRupiah(netBalance)} />
+        <StatCard
+          title="Net Balance"
+          value={`${netBalance < 0 ? "- " : ""}${formatToRupiah(
+            Math.abs(netBalance)
+          )}`}
+          valueColor={netBalancecolor}
+        />
         <StatCard title="Total Entries" value={entriesCount} />
       </div>
       <RecentEntriesTable entries={recentEntries} />

@@ -3,22 +3,25 @@
 import { useState } from "react";
 import { deletejournalEntry } from "@/lib/action";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 import { set } from "date-fns";
 
-export default function DeleteEntryButton({ entryid }) {
+export default function DeleteEntryButton({ entryId }) {
   const [showModal, setShowModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    const result = await deletejournalEntry(entryid);
+    const result = await deletejournalEntry(entryId);
     if (result?.error) {
-      toast.error("Gagal menghapus entry journal");
+      toast.error(result.error);
     } else {
       toast.success("Entry journal berhasil dihapus");
-      setIsDeleting(false);
-      setShowModal(false);
+      router.refresh();
     }
+    setIsDeleting(false);
+    setShowModal(false);
   };
 
   return (

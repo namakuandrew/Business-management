@@ -1,13 +1,6 @@
 import { format } from "date-fns";
 import Link from "next/link";
-
-const formatToRupiah = (value) => {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(value);
-};
+import { formatToRupiah } from "@/lib/utils";
 
 // This component receives data via the 'entries' prop
 export default function RecentEntriesTable({ entries }) {
@@ -52,7 +45,7 @@ export default function RecentEntriesTable({ entries }) {
                         totalAmount >= 0 ? "text-green-500" : "text-red-500"
                       }
                     >
-                      {totalAmount >= 0 ? "+" : ""}
+                      {totalAmount >= 0 ? "+" : "- "}
                       {formatToRupiah(Math.abs(totalAmount))}
                     </td>
                     <td>

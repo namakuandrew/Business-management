@@ -2,13 +2,7 @@ import { supabase } from "@/lib/supabase/client";
 import { format } from "date-fns";
 import Link from "next/link";
 import DeleteEntryButton from "@/component/DeleteEntryButton";
-
-const formatToRupiah = (value) =>
-  new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    minimumFractionDigits: 0,
-  }).format(value);
+import { formatToRupiah } from "@/lib/utils";
 
 export default async function EntriesPage() {
   const { data: entries, error } = await supabase
@@ -34,9 +28,10 @@ export default async function EntriesPage() {
           <thead>
             <tr>
               <th>Date</th>
-              <th>Entry Type</th>
-              <th>Reference</th>
               <th>Company</th>
+              <th>Description</th>
+              <th>Total Amount</th>
+              <th>Type</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -53,13 +48,14 @@ export default async function EntriesPage() {
               return (
                 <tr key={entry.id}>
                   <td>{format(new Date(entry.posting_date), "yyyy-MM-dd")}</td>
+                  <td>{entry.company || "-"}</td>
                   <td>{description}</td>
                   <td
                     className={
                       totalAmount >= 0 ? "text-green-500" : "text-red-500"
                     }
                   >
-                    {totalAmount >= 0 ? "+" : ""}
+                    {totalAmount >= 0 ? "+" : "- "}
                     {formatToRupiah(Math.abs(totalAmount))}
                   </td>
                   <td>
