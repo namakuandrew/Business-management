@@ -1,5 +1,7 @@
 import StatCard from "@/component/StatCard";
 import RecentEntriesTable from "@/component/RecentEntriesTable";
+import DashboardChart from "@/component/DashboardChart";
+import { format } from "date-fns";
 import { supabase } from "@/lib/supabase/client";
 import { formatToRupiah } from "@/lib/utils";
 
@@ -36,6 +38,28 @@ export default async function DashboardPage() {
   const netBalance = totalIn + totalOut; // Note: totalOut is already negative if amounts are stored correctly
   const entriesCount = allEntries.length;
   const netBalancecolor = netBalance > 0 ? "text-green-500" : "text-red-500";
+
+  const monthlyData = {};
+  allEntries.forEach((entry) => {
+    const month = format(new Date(entry.posting_date), "MMM yyyy");
+    const entryTotal = entry.journal_entry_items.reduce(
+      (sum, item) => sum + Math.abs(item.amount),
+      0
+    );
+
+    if (!monthlyData[month]) {
+      monthlyData[month] = { name: month, in: 0, out: 0 };
+    }
+    if (entry.cash_type === "In") {
+      monthlyData[month].in += entryTotal;
+    } else {
+      monthlyData[month].out += entryTotal;
+    }
+  });
+  const chartData = Object.values(monthlyData).sort(
+    (a, b) => new Date(a.name) - new Date(b.name)
+  );
+
   const recentEntries = allEntries.slice(0, 5);
 
   return (
@@ -67,6 +91,7 @@ export default async function DashboardPage() {
         />
         <StatCard title="Total Entries" value={entriesCount} />
       </div>
+      <DashboardChart data={chartData} />
       <RecentEntriesTable entries={recentEntries} />
     </>
   );
