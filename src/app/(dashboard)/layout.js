@@ -1,14 +1,18 @@
-"use client";
-import React, { useState } from "react";
-import Sidebar from "@/component/Sidebar";
+// app/(dashboard)/layout.js
+import DashboardClientLayout from "@/component/DashboardClientLayout";
+import { createSupabaseServerClient } from "@/lib/supabase/utils";
+import { cookies } from "next/headers";
 
-export default function DashboardLayout({ children }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+export default async function DashboardLayout({ children }) {
+  const cookieStore = cookies();
+  const supabase = createSupabaseServerClient(cookieStore);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
-    <div className="dashboard-layout">
-      <Sidebar isSidebarOpen={isSidebarOpen} setSidebarOpen={setSidebarOpen} />
-      <main className="main-content">{children}</main>
-    </div>
+    <DashboardClientLayout userEmail={user?.email}>
+      {children}
+    </DashboardClientLayout>
   );
 }

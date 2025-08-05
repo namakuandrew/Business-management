@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { deletejournalEntry } from "@/lib/action";
+import { deleteJournalEntry } from "@/lib/action";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { set } from "date-fns";
@@ -13,7 +13,7 @@ export default function DeleteEntryButton({ entryId }) {
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    const result = await deletejournalEntry(entryId);
+    const result = await deleteJournalEntry(entryId);
     if (result?.error) {
       toast.error(result.error);
     } else {

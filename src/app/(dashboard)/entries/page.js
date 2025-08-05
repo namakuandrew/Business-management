@@ -1,10 +1,15 @@
-import { supabase } from "@/lib/supabase/client";
+// app/(dashboard)/entries/page.js
+import { createSupabaseServerClient } from "@/lib/supabase/utils"; // Correct import
+import { cookies } from "next/headers"; // Needed to create the server client
 import { format } from "date-fns";
 import Link from "next/link";
 import DeleteEntryButton from "@/component/DeleteEntryButton";
-import { formatToRupiah } from "@/lib/utils";
+import { formatToRupiah } from "@/lib/supabase/utils";
 
 export default async function EntriesPage() {
+  const cookieStore = cookies();
+  const supabase = createSupabaseServerClient(cookieStore); // Correct client creation
+
   const { data: entries, error } = await supabase
     .from("journal_entries")
     .select("*, journal_entry_items(description, amount)")
@@ -67,7 +72,6 @@ export default async function EntriesPage() {
                       {entry.cash_type || "N/A"}
                     </span>
                   </td>
-                  {/* New Actions Cell */}
                   <td className="actions-cell">
                     <Link
                       href={`/entries/${entry.id}/edit`}

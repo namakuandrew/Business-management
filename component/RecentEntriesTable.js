@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import Link from "next/link";
-import { formatToRupiah } from "@/lib/utils";
+import { formatToRupiah } from "@/lib/supabase/utils";
 
 // This component receives data via the 'entries' prop
 export default function RecentEntriesTable({ entries }) {

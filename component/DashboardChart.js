@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { formatToRupiah } from "@/lib/utils";
+import { formatToRupiah } from "@/lib/supabase/utils";
 
 export default function DashboardChart({ data }) {
   //custome tooltip

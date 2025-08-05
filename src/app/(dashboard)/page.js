@@ -1,11 +1,16 @@
+// app/(dashboard)/page.js
 import StatCard from "@/component/StatCard";
 import RecentEntriesTable from "@/component/RecentEntriesTable";
 import DashboardChart from "@/component/DashboardChart";
 import { format } from "date-fns";
-import { supabase } from "@/lib/supabase/client";
-import { formatToRupiah } from "@/lib/utils";
+import { createSupabaseServerClient } from "@/lib/supabase/utils";
+import { cookies } from "next/headers";
+import { formatToRupiah } from "@/lib/supabase/utils";
 
 export default async function DashboardPage() {
+  const cookieStore = cookies();
+  const supabase = createSupabaseServerClient(cookieStore);
+
   const { data: allEntries, error } = await supabase
     .from("journal_entries")
     .select("*, journal_entry_items(amount)")
@@ -16,17 +21,16 @@ export default async function DashboardPage() {
     return <p>Error loading data.</p>;
   }
 
-  //calculation
+  // --- Calculations ---
   let totalIn = 0;
   let totalOut = 0;
+
   allEntries.forEach((entry) => {
-    // Calculate the total amount for this specific entry
     const entryTotal = entry.journal_entry_items.reduce(
-      (sum, item) => sum + item.amount,
+      (sum, item) => sum + Math.abs(item.amount),
       0
     );
 
-    // Use the parent entry's 'cash_type' to sort the total
     if (entry.cash_type === "In") {
       totalIn += entryTotal;
     } else {
@@ -34,11 +38,11 @@ export default async function DashboardPage() {
     }
   });
 
-  // FIX: Ensure netBalance is calculated correctly here
-  const netBalance = totalIn + totalOut; // Note: totalOut is already negative if amounts are stored correctly
+  const netBalance = totalIn - totalOut;
   const entriesCount = allEntries.length;
-  const netBalancecolor = netBalance > 0 ? "text-green-500" : "text-red-500";
+  const netBalanceColor = netBalance < 0 ? "text-red-500" : "text-green-500";
 
+  // --- Chart Data Processing ---
   const monthlyData = {};
   allEntries.forEach((entry) => {
     const month = format(new Date(entry.posting_date), "MMM yyyy");
@@ -46,14 +50,13 @@ export default async function DashboardPage() {
       (sum, item) => sum + Math.abs(item.amount),
       0
     );
-
     if (!monthlyData[month]) {
-      monthlyData[month] = { name: month, in: 0, out: 0 };
+      monthlyData[month] = { name: month, In: 0, Out: 0 };
     }
     if (entry.cash_type === "In") {
-      monthlyData[month].in += entryTotal;
+      monthlyData[month].In += entryTotal;
     } else {
-      monthlyData[month].out += entryTotal;
+      monthlyData[month].Out += entryTotal;
     }
   });
   const chartData = Object.values(monthlyData).sort(
@@ -69,7 +72,7 @@ export default async function DashboardPage() {
           <h1>Dashboard</h1>
           <p>Overview of your financial data.</p>
         </div>
-        <div className="avatar">S</div>
+        <div className="avatar">A</div>
       </header>
       <div className="stats-grid">
         <StatCard
@@ -79,15 +82,13 @@ export default async function DashboardPage() {
         />
         <StatCard
           title="Total Out"
-          value={`- ${formatToRupiah(Math.abs(totalOut))}`}
+          value={`- ${formatToRupiah(totalOut)}`}
           valueColor="text-red-500"
         />
         <StatCard
           title="Net Balance"
-          value={`${netBalance < 0 ? "- " : ""}${formatToRupiah(
-            Math.abs(netBalance)
-          )}`}
-          valueColor={netBalancecolor}
+          value={formatToRupiah(netBalance)}
+          valueColor={netBalanceColor}
         />
         <StatCard title="Total Entries" value={entriesCount} />
       </div>
