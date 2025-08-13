@@ -6,12 +6,19 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { createJournalEntry } from "@/lib/action";
 
-export default function NewJournalEntryForm() {
+export default function NewJournalEntryForm({ companies }) {
   const [items, setItems] = useState([
     { account: "", description: "", amount: "" },
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [referenceNo, setReferenceNo] = useState("");
   const router = useRouter();
+
+  const handleCompanyChange = (event) => {
+    const companyId = event.target.value;
+    const company = companies.find((c) => c.id.toString() === companyId);
+    setReferenceNo(company?.reference_prefix || "");
+  };
 
   const handleAddItem = () => {
     setItems([...items, { account: "", description: "", amount: "" }]);
@@ -33,6 +40,7 @@ export default function NewJournalEntryForm() {
     setIsSubmitting(true);
 
     const formData = new FormData(event.target);
+    formData.set("reference_no", referenceNo);
     const result = await createJournalEntry(formData);
 
     if (result && result.error) {
@@ -81,13 +89,22 @@ export default function NewJournalEntryForm() {
           />
         </div>
         <div className="form-field">
-          <label htmlFor="company">Company</label>
-          <input
-            type="text"
-            id="company"
-            name="company"
-            placeholder="e.g., my company"
-          />
+          <label htmlFor="contact_id">Company</label>
+          <select
+            id="contact_id"
+            name="contact_id"
+            onChange={handleCompanyChange}
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Select a company
+            </option>
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="form-field">
           <label htmlFor="cash_type">Cash Type</label>
@@ -174,6 +191,9 @@ export default function NewJournalEntryForm() {
           id="reference_no"
           name="reference_no"
           placeholder="e.g., INV-12345"
+          value={referenceNo}
+          readOnly
+          className="disabled-input"
         />
       </div>
 

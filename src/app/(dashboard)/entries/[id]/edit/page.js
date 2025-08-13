@@ -1,17 +1,24 @@
-import { supabase } from "@/lib/supabase/client";
+import { createSupabaseServerClient } from "@/lib/supabase/utils";
+import { cookies } from "next/headers";
 import EditJournalEntryForm from "@/component/EditJournalEntryForm";
 import { notfound } from "next/navigation";
 
 export default async function EditEntryPage({ params }) {
   const { id } = params;
+  const cookieStore = cookies();
+  const supabase = createSupabaseServerClient(cookieStore);
 
-  const { data: entry, error } = await supabase
+  const { data: entry, error: entryError } = await supabase
     .from("journal_entries")
     .select("*, journal_entry_items(*)")
     .eq("id", id)
     .single();
 
-  if (error || !entry) {
+  const { data: companies, error: companiesError } = await supabase
+    .from("contacts")
+    .select("id, name, reference_prefix");
+
+  if (entryError || !entry) {
     notfound();
   }
 
@@ -23,7 +30,7 @@ export default async function EditEntryPage({ params }) {
           <p>Update isi didalam journal</p>
         </div>
       </header>
-      <EditJournalEntryForm entry={entry} />
+      <EditJournalEntryForm entry={entry} companies={companies || []} />
     </>
   );
 }

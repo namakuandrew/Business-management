@@ -2,7 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/utils"; // Correct im
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }) {
   const signIn = async (FormData) => {
     "use server";
     const email = FormData.get("email");
@@ -40,9 +40,22 @@ export default function LoginPage() {
   };
   return (
     <div className="login-container">
+      <div className="video-background">
+        <video autoPlay loop muted playsInline>
+          <source src="/WebSite-Background.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <div className="video-overlay"></div>
+      </div>
       <div className="login-form">
-        <h1 className="login-title">Login</h1>
-        <p className="login-message">Sign in or create an account</p>
+        <h1 className="login-title">Welcome back</h1>
+        <p className="login-message">Sign in to access dashboard </p>
+
+        {/* Notification Message */}
+        {searchParams?.message && (
+          <p className="notification-message">{searchParams.message}</p>
+        )}
+
         <form>
           <label htmlFor="email">Email:</label>
           <input name="email" placeholder="you@example.com" required />

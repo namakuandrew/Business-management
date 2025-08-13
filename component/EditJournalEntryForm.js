@@ -1,16 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { updateJournalEntry } from "@/lib/action";
+import { useRouter } from "next/navigation";
+import { set } from "date-fns";
 
-export default function EditJournalEntryForm({ entry }) {
+export default function EditJournalEntryForm({ entry, companies }) {
   // Initialize the line items state with the data passed from the server
   const [items, setItems] = useState(
     entry.journal_entry_items || [{ account: "", description: "", amount: "" }]
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [referenceNo, setReferenceNo] = useState(entry.reference_no || "");
+  const router = useRouter();
+
+  const handleCompanyChange = (event) => {
+    const companyId = event.target.value;
+    const company = companies.find((c) => c.id.toString() === companyId);
+    setReferenceNo(company?.reference_prefix || "");
+  };
 
   const handleAddItem = () =>
     setItems([...items, { account: "", description: "", amount: "" }]);
@@ -19,6 +29,7 @@ export default function EditJournalEntryForm({ entry }) {
     newItems[index][field] = value;
     setItems(newItems);
   };
+
   const handleRemoveItem = (index) =>
     setItems(items.filter((_, i) => i !== index));
 
@@ -65,15 +76,22 @@ export default function EditJournalEntryForm({ entry }) {
           />
         </div>
         <div className="form-field">
-          <label htmlFor="company">Company</label>
-          <input
-            type="text"
-            id="company"
-            name="company"
-            placeholder="e.g., My Company"
-            defaultValue={entry.company}
-          />
+          <label htmlFor="contact_id">Company</label>
+          <select
+            id="contact_id"
+            name="contact_id"
+            defaultValue={entry.contact_id}
+            onChange={handleCompanyChange}
+          >
+            <option value="">Select a company</option>
+            {companies.map((company) => (
+              <option key={company.id} value={company.id}>
+                {company.name}
+              </option>
+            ))}
+          </select>
         </div>
+
         <div className="form-field">
           <label htmlFor="cash_type">Cash Type</label>
           <select
@@ -154,7 +172,9 @@ export default function EditJournalEntryForm({ entry }) {
           id="reference_no"
           name="reference_no"
           placeholder="e.g., INV-001"
-          defaultValue={entry.reference_no}
+          value={referenceNo}
+          readOnly
+          className="disabled-input"
         />
       </div>
       <div className="form-actions">

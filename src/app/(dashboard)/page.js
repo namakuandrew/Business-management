@@ -13,7 +13,7 @@ export default async function DashboardPage() {
 
   const { data: allEntries, error } = await supabase
     .from("journal_entries")
-    .select("*, journal_entry_items(amount)")
+    .select("*, contacts(name), journal_entry_items(amount, description)")
     .order("posting_date", { ascending: false });
 
   if (error) {
@@ -59,9 +59,12 @@ export default async function DashboardPage() {
       monthlyData[month].Out += entryTotal;
     }
   });
-  const chartData = Object.values(monthlyData).sort(
-    (a, b) => new Date(a.name) - new Date(b.name)
-  );
+  const chartData = Object.values(monthlyData)
+    .map((month) => ({
+      ...month,
+      Net: month.In - month.Out,
+    }))
+    .sort((a, b) => new Date(a.name) - new Date(b.name));
 
   const recentEntries = allEntries.slice(0, 5);
 

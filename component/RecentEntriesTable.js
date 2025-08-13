@@ -18,6 +18,7 @@ export default function RecentEntriesTable({ entries }) {
           <thead>
             <tr>
               <th className="date-col">Date</th>
+              <th>company</th>
               <th>Description</th>
               <th>Amount</th>
               <th>Type</th>
@@ -39,6 +40,7 @@ export default function RecentEntriesTable({ entries }) {
                     <td>
                       {format(new Date(entry.posting_date), "yyyy-MM-dd")}
                     </td>
+                    <td>{entry.contacts?.name || "-"}</td>
                     <td>{description}</td>
                     <td
                       className={

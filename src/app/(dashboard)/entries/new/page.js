@@ -1,6 +1,14 @@
 import NewEntryForm from "@/component/NewEntryForm";
+import { createSupabaseServerClient } from "@/lib/supabase/utils";
+import { cookies } from "next/headers";
 
-export default function NewEntryPage() {
+export default async function NewEntryPage() {
+  const cookieStore = cookies();
+  const supabase = createSupabaseServerClient(cookieStore);
+  const { data: companies } = await supabase
+    .from("contacts")
+    .select("id, name, reference_prefix");
+
   return (
     <div>
       <header className="page-header">
@@ -9,7 +17,7 @@ export default function NewEntryPage() {
           <p>Create a new entry to record a transaction.</p>
         </div>
       </header>
-      <NewEntryForm />
+      <NewEntryForm companies={companies || []} />
     </div>
   );
 }

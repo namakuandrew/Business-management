@@ -5,15 +5,24 @@ import { format } from "date-fns";
 import Link from "next/link";
 import DeleteEntryButton from "@/component/DeleteEntryButton";
 import { formatToRupiah } from "@/lib/supabase/utils";
+import Search from "@/component/Search";
 
-export default async function EntriesPage() {
+export default async function EntriesPage({ searchParams }) {
   const cookieStore = cookies();
   const supabase = createSupabaseServerClient(cookieStore); // Correct client creation
+  const query = searchParams.query || "";
 
-  const { data: entries, error } = await supabase
+  let queryBuilder = supabase
     .from("journal_entries")
-    .select("*, journal_entry_items(description, amount)")
-    .order("posting_date", { ascending: false });
+    .select("*, contacts(name), journal_entry_items(description, amount)");
+
+  if (query) {
+    queryBuilder = queryBuilder.ilike("reference_no", `%${query}%`);
+  }
+
+  const { data: entries, error } = await queryBuilder.order("posting_date", {
+    ascending: false,
+  });
 
   if (error) return <p>Could not load entries.</p>;
 
@@ -24,6 +33,7 @@ export default async function EntriesPage() {
           <h1>Journal Entries</h1>
           <p>A complete list of all recorded entries.</p>
         </div>
+        <Search placeholder={"Search by Reference No."} />
         <Link href="/entries/new" className="add-entry-btn">
           New Journal Entry
         </Link>
@@ -35,6 +45,7 @@ export default async function EntriesPage() {
               <th>Date</th>
               <th>Company</th>
               <th>Description</th>
+              <th>Reference No.</th>
               <th>Total Amount</th>
               <th>Type</th>
               <th>Actions</th>
@@ -53,8 +64,9 @@ export default async function EntriesPage() {
               return (
                 <tr key={entry.id}>
                   <td>{format(new Date(entry.posting_date), "yyyy-MM-dd")}</td>
-                  <td>{entry.company || "-"}</td>
+                  <td>{entry.contacts.name || "-"}</td>
                   <td>{description}</td>
+                  <td>{entry.reference_no || "-"}</td>
                   <td
                     className={
                       totalAmount >= 0 ? "text-green-500" : "text-red-500"

@@ -19,6 +19,11 @@ export default function Sidebar({ isSidebarOpen, setSidebarOpen, userEmail }) {
     { href: "/", icon: <HomeIcon />, label: "Dashboard" },
     { href: "/entries", icon: <BookIcon />, label: "Entries" },
     { href: "/contacts", icon: <UsersIcon />, label: "Contacts" },
+    {
+      href: "/company-reference",
+      icon: <DollarSignIcon />,
+      label: "Company Reference",
+    },
   ];
 
   const handleSignOut = async () => {
@@ -52,12 +57,6 @@ export default function Sidebar({ isSidebarOpen, setSidebarOpen, userEmail }) {
             })}
           </ul>
         </nav>
-      </div>
-      <div>
-        <a href="#" className="nav-link">
-          <SettingsIcon />
-          {isSidebarOpen && <span>Settings</span>}
-        </a>
       </div>
       <div className="sidebar-footer">
         <div className="user-info">
