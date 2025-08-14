@@ -26,10 +26,12 @@ export default async function LoginPage({ searchParams }) {
     const cookieStore = cookies();
     const supabase = createSupabaseServerClient(cookieStore);
 
+    const host = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: "http://localhost:3000/auth/callback" },
+      options: { emailRedirectTo: `${host}/auth/callback` },
     });
     if (error) {
       return redirect("/login?message=Could not create User");
