@@ -34,7 +34,19 @@ export default async function LoginPage({ searchParams }) {
       options: { emailRedirectTo: `${host}/auth/callback` },
     });
     if (error) {
-      return redirect("/login?message=Could not create User");
+      console.error("Sign up error:", error.message);
+
+      if (error.message.includes("User already registered")) {
+        return redirect("/login?message=This email address is already in use.");
+      }
+      if (error.message.includes("Password should be at least 6 characters")) {
+        return redirect(
+          "/login?message=Password is too weak. Please use at least 6 characters."
+        );
+      }
+      return redirect(
+        "/login?message=Could not create an account. Please try again."
+      );
     }
     return redirect(
       "/login?message=Please check your email to confirm your account"
