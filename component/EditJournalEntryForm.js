@@ -46,6 +46,7 @@ export default function EditJournalEntryForm({ entry, companies }) {
       toast.error(result.error);
     } else {
       toast.success("Entry updated successfully!");
+      router.push("/entries");
     }
     setIsSubmitting(false);
   };
