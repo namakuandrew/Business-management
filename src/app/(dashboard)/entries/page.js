@@ -64,7 +64,7 @@ export default async function EntriesPage({ searchParams }) {
               return (
                 <tr key={entry.id}>
                   <td>{format(new Date(entry.posting_date), "yyyy-MM-dd")}</td>
-                  <td>{entry.contacts.name || "-"}</td>
+                  <td>{entry.contacts?.name || "-"}</td>
                   <td>{description}</td>
                   <td>{entry.reference_no || "-"}</td>
                   <td
