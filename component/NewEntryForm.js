@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { createJournalEntry } from "@/lib/action";
+import { createJournalEntry, getNextReferenceNo } from "@/lib/action";
+import { set } from "date-fns";
 
 export default function NewJournalEntryForm({ companies }) {
   const [items, setItems] = useState([
@@ -12,12 +13,27 @@ export default function NewJournalEntryForm({ companies }) {
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [referenceNo, setReferenceNo] = useState("");
+  const [isLoadingRef, setIsLoadingRef] = useState(false);
   const router = useRouter();
 
-  const handleCompanyChange = (event) => {
+  const handleCompanyChange = async (event) => {
     const companyId = event.target.value;
-    const company = companies.find((c) => c.id.toString() === companyId);
-    setReferenceNo(company?.reference_prefix || "");
+    if (!companyId) {
+      setReferenceNo("");
+      return;
+    }
+
+    setIsLoadingRef(true);
+    const result = await getNextReferenceNo(companyId);
+
+    if (result && result.error) {
+      console.error(result.error);
+      toast.error("could not generate reference number");
+      setReferenceNo("Error");
+    } else if (result) {
+      setReferenceNo(result.referenceNo);
+    }
+    setIsLoadingRef(false);
   };
 
   const handleAddItem = () => {
@@ -191,7 +207,7 @@ export default function NewJournalEntryForm({ companies }) {
           id="reference_no"
           name="reference_no"
           placeholder="e.g., INV-12345"
-          value={referenceNo}
+          value={isLoadingRef ? "Loading..." : referenceNo}
           readOnly
           className="disabled-input"
         />
